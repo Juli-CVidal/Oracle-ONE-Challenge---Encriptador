@@ -1,58 +1,43 @@
 // const fromText = document.querySelector("#input"),
-let inputText,
-  resultText,
-  exchangeBtn,
-  translateBtn,
-  action,
-  leftCopy,
-  rightCopy;
+let inputText, resultText, toggleBtn, translateBtn, leftCopy, rightCopy;
 
 const ENCRYPTER = { a: "ai", e: "enter", i: "imes", o: "ober", u: "ufat" };
 const DECRYPTER = { ai: "a", enter: "e", imes: "i", ober: "o", ufat: "u" };
-
-const decryptMessage = () => {
-    //Convierto el mensaje a minúsculas
-  let messageToDecrypt = resultText.value.toLowerCase();
-
-  //Reemplazo cada vocal por su encriptación correspondiente
-  inputText.value = messageToDecrypt.replace(
-    /[a-z]/g,
-    (sequence) => DECRYPTER[sequence] || sequence
-  );
-};
+let dictionary;
 
 const encryptMessage = () => {
-  let messageToEncrypt = inputText.value.toLowerCase();
+  console.log(dictionary);
+  const keys = Object.keys(dictionary);
+  //Con la expresión regular indico los patrones a comparar
+  //En este caso son las keys del diccionario, que las uno en un string
+  //Al separarlas por | estoy indicando que busque uno u otro ("este patrón"|"este otro")
+  const regex = new RegExp(`(${keys.join("|")})`, "g");
 
-  resultText.value = messageToEncrypt.replace(
-    /[a-z]/g,
-    (letter) => ENCRYPTER[letter] || letter
+  //Replace se encarga de usar regex como buscador
+  //Si encuentra coincidencias, las reemplaza con la entrada en el diccionario
+  let messageToEncrypt = inputText.value.toLowerCase().replace(
+    regex,
+    (word) => dictionary[word]
   );
+
+
+  resultText.value = messageToEncrypt;
 };
 
-
-//Reemplazo la acción anterior por la correspondiente
-const addDecryptAction = () => {
-    translateBtn.removeEventListener("click", encryptMessage);
-    translateBtn.addEventListener("click", decryptMessage);
-    action.innerText = "DESENCRIPTANDO";
-};
-
-//Reemplazo la acción anterior por la correspondiente
-const addEncryptAction = () => {
-  translateBtn.removeEventListener("click", decryptMessage);
-  translateBtn.addEventListener("click", encryptMessage);
-  action.innerText = "ENCRIPTANDO";
-};
-
-const addExchangeAction = () => {
-  exchangeBtn.addEventListener("click", () => {
+const changeDictionary = () => {
+  toggleBtn.addEventListener("click", () => {
     //Intercambio los valores
     [inputText.value, resultText.value] = [resultText.value, inputText.value];
-    //Intercambio la opción para encriptar o desencriptar
-    action.innerText == "ENCRIPTANDO" ? addDecryptAction() : addEncryptAction();
-  });
 
+    //Intercambio la opción para encriptar o desencriptar
+    if (translateBtn.innerText == "ENCRIPTANDO") {
+      translateBtn.innerText = "DESENCRIPTANDO";
+      dictionary = DECRYPTER;
+    } else {
+      translateBtn.innerText = "ENCRIPTANDO";
+      dictionary = ENCRYPTER;
+    }
+  });
 };
 
 const addCopyActions = () => {
@@ -69,24 +54,26 @@ const addCopyActions = () => {
 
 const addActions = () => {
   addCopyActions();
-  addExchangeAction();
-  addEncryptAction();
+  changeDictionary();
 };
 
 const getAllElements = () => {
   inputText = document.getElementById("input");
   resultText = document.getElementById("result");
-  exchangeBtn = document.getElementById("exchange");
-  icons = document.querySelectorAll(".row i");
+  toggleBtn = document.getElementById("exchange");
   translateBtn = document.getElementById("translate");
-  action = document.getElementById("action");
+  currentAction = document.getElementById("action");
   leftCopy = document.getElementById("left-copy");
   rightCopy = document.getElementById("right-copy");
+  dictionary = ENCRYPTER;
 };
 
 const init = () => {
   getAllElements();
   addActions();
+  translateBtn.addEventListener("click", () => {
+    encryptMessage();
+  });
 };
 
 window.onload = init();
